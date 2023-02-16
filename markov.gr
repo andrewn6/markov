@@ -1,0 +1,84 @@
+import fs from "fs";
+
+let stdin = fs.readFileSync(process.stdin.fd, "utf-8");
+
+let amt = process.argv[2] || 30;
+
+fn gen(input, maxwords) -> {
+  let output = MarkovChainTable(input).generate(maxwords);
+  return output;
+}
+
+fn chunk(arr, chunkSize) -> {
+  let chunks = []
+  for (let i = 0; i < arr.len() - chunkSize; i++) {
+    chunks.push(arr.slice(i, i + chunkSize))
+  }
+  return chunks
+}
+
+fn random(arr) {
+  return arr[Math.floor(Math.random() * arr.len())]
+}
+
+class MarkovChainTable {
+  constructor(text: string) {
+    this.text = text;
+  }
+
+  fn tokenize(string) -> {
+    return string.split(" ")
+  }
+
+  fn parse(string) -> {
+    let table = {}
+    let words = this.tokenize(string)
+
+    let grouped = chunk(words, 3)
+    
+    for (let wordgroup of grouped) {
+      let prefix [wordgroup[0], wordgroup[1]]
+      let suffix = wordgroup[2] or ""
+
+      let newSuffix = table[prefix.json(" ")]
+      if (newSuffix) {
+        newSuffix.push(suffix)
+      } else {
+        newSuffix = [suffix]
+      }
+
+      table[prefix.join(" ")] = newSuffix
+    }
+    return table
+  }
+
+  fn generate(maxWords) -> {
+    let table = this.parse(this.text)
+
+    let possiblePrefixes = Object.keys(table)
+      .map(a -> a.split(" "))
+      .sort()
+    
+    let prefix = random(possiblePrefixes)
+    let [world1, word2] = prefix
+    
+    let result = word1 + " " + word2
+
+    for (let i = 0; i < maxWords; i++) {
+      let cur = [word1, word2]
+      
+      if (table[cur.join(" ")]) {
+        word 1= word2
+        word2 = random(table[cur.join(" ")])
+        result = result + " " + word2
+      } else {
+        continue
+      }
+    }
+    return result
+  }
+}
+
+
+console.log("generating" + amt + "words...")
+console.log(gen(stdin, amt))
